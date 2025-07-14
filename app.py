@@ -8,10 +8,13 @@ import os
 # --- Firebase Admin SDK setup ---
 import firebase_admin
 from firebase_admin import credentials, firestore
+import os
 
-cred = credentials.Certificate("serviceAccountKey.json")
+cred_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "serviceAccountKey.json")
+cred = credentials.Certificate(cred_path)
 firebase_admin.initialize_app(cred)
-db = firestore.client()   # Nếu bạn dùng Firestore
+db = firestore.client()
+
 
 # ==== Mapping code và cảm xúc ====
 EMOTION_MAP = {
