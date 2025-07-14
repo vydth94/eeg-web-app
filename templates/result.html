@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+<head>
+    <title>EEG Emotion Results</title>
+    <style>
+        body { background: linear-gradient(120deg,#A1FFCE 0%,#FAFFD1 100%); font-family: 'Segoe UI','Arial',sans-serif;}
+        .container { max-width: 950px; margin: 42px auto 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(40,180,160,0.08); padding: 32px 32px 20px 32px; text-align: center; border: 1.5px solid #a0e7e5;}
+        .logos { display: flex; justify-content: center; gap: 32px; margin-bottom: 8px; align-items: center;}
+        .logos img { height: 60px; background: #fff; border-radius: 50%; padding: 4px 7px; border: 2px solid #72e0c2;}
+        h2 { color: #1d7772; margin-bottom: 8px; font-size: 2em; font-weight: 900;}
+        .info { color: #3aa6a1; margin-bottom: 12px; font-size: 1.1em;}
+        table { margin: 18px auto 12px auto; border-collapse: collapse; min-width: 660px; font-size: 1.06em;}
+        th, td { padding: 8px 15px; border: 1.3px solid #85ffd4;}
+        th { background: #a1ffce77; color: #0a8580;}
+        td { background: #f7fffa; color: #087d7d;}
+        .footer { margin-top: 28px; color: #06776e; font-size: 0.98em; opacity: 0.8; letter-spacing: 0.5px;}
+        a { text-decoration: none; color: #00aaa3; font-weight: 600; margin-top: 16px; display: inline-block; font-size: 1.1em;}
+        .chart-emo { display: flex; flex-wrap:wrap; justify-content:center; gap:44px; }
+        .emo-icon-block { margin-left:34px; text-align:left;}
+        .emo-icon-block img { vertical-align:middle; margin-right:12px;}
+        .emo-icon-block span { font-size:1.25em;}
+        .tips { margin-top:32px; text-align:left;}
+        .tips h3 { color:#00b294; }
+        .tips ul { font-size:1.16em; line-height:1.67;}
+        /* Highlight max prob cell */
+        td.maxprob {
+            background: #bbffe5 !important;
+            font-weight: bold;
+            color: #0b7f63 !important;
+        }
+        @media (max-width: 1050px) { .container { max-width: 98vw; padding: 8px 2vw; } }
+        @media (max-width: 700px) { table { min-width: 320px; font-size: 0.89em; } .container { padding: 8px 2px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logos">
+            <a href="https://hcmiu.edu.vn/en/schools-and-departments/" target="_blank">
+                <img src="{{ url_for('static', filename='IU_Logo.png') }}">
+            </a>
+            <a href="https://hcmiu.edu.vn/en/schools-and-departments/department-of-biomedical-engineering/" target="_blank">
+                <img src="{{ url_for('static', filename='BME_Logo.png') }}">
+            </a>
+        </div>
+        <h2>EEG Emotion Recognition Result</h2>
+        <div class="info">Subject ID: <b>{{subject_id}}</b> | Gender: <b>{{gender}}</b></div>
+        <div class="chart-emo">
+            <div>
+                <canvas id="emotionLine" width="510" height="280"></canvas>
+            </div>
+            <div class="emo-icon-block">
+                <h3 style="color:#0c887c;">Emotion Ratio</h3>
+                {% for emo, percent in emotion_percent.items() %}
+                    <div style="margin:10px 0;">
+                        <img src="{{ url_for('static', filename=emo_icon[emo]) }}" style="height:48px;width:48px;">
+                        <span><b>{{ percent }}%</b> - {{emo}}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <table>
+            <tr>
+                <th>Segment</th>
+                <th>Label</th>
+                <th>Emotion</th>
+                {% for cname in class_names %}
+                  <th>{{cname}}</th>
+                {% endfor %}
+            </tr>
+            {% for r in results %}
+            <tr>
+                <td>{{r.segment}}</td>
+                <td>{{r.label}}</td>
+                <td>{{r.emotion}}</td>
+                {% set max_prob = r.probs | max %}
+                {% for p in r.probs %}
+                  <td{% if p == max_prob %} class="maxprob"{% endif %}>
+                    {{ '%.2f'|format(p) }}
+                  </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+        <a href="/upload">&#8592; Back to Upload</a>
+        <!-- Updated tips -->
+        <div class="tips">
+            <h3 style="color:#00b294; margin-bottom:8px;">
+                <span style="font-size:1.35em;">💡</span> 0-cost Emotion Regulation Tips
+            </h3>
+            <div style="font-size:1.11em; margin-bottom: 8px; color:#0f776e; font-weight:500;">
+                Feeling overwhelmed or down? Try these science-backed, completely free mood boosters!
+            </div>
+            <ul style="font-size:1.16em; line-height:1.67;">
+              <li><span style="font-size:1.15em;">🧘‍♂️</span> <b>Deep Breathing:</b> Calm your nerves instantly with slow, mindful breaths.</li>
+              <li><span style="font-size:1.15em;">🔄</span> <b>Reframe Thoughts:</b> Look at the situation from a fresh, positive perspective.</li>
+              <li><span style="font-size:1.15em;">🚶‍♂️</span> <b>Take a Break:</b> Step away from stress—even a short walk can refresh your mind.</li>
+              <li><span style="font-size:1.15em;">👫</span> <b>Connect with Friends:</b> Share your feelings with someone you trust—support matters!</li>
+              <li><span style="font-size:1.15em;">😄</span> <b>Smile &amp; Stretch:</b> Smiling and gentle movement can uplift your mood—try it now!</li>
+            </ul>
+        </div>
+        <div class="footer">
+            &copy; Thesis 2025, Vietnam National University Ho Chi Minh City
+        </div>
+    </div>
+    <!-- Chart.js scatter plot for emotion (only points, no lines) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // emotion_labels là list index (0=Happy, 1=Calm, 2=Angry, 3=Sad)
+        const emotion_labels = {{ emotion_labels | safe }};
+        const yLabels = ["Happy","Calm","Angry","Sad"];
+        const colorMap = ["#4debc9","#92d4a5","#ff6f61","#59a1c9"];
+        // Scatter points only, each emotion one color, no lines
+        const datasets = yLabels.map((emo, idx) => {
+            return {
+                label: emo,
+                data: emotion_labels.map((e, i) => e===idx ? {x:i+1, y:idx} : null).filter(v=>v),
+                showLine: false,
+                borderWidth: 0,
+                pointRadius: 5.2,
+                backgroundColor: colorMap[idx],
+                borderColor: colorMap[idx],
+                spanGaps: false
+            }
+        });
+
+        new Chart(document.getElementById('emotionLine').getContext('2d'), {
+            type: 'scatter',
+            data: { datasets: datasets },
+            options: {
+                responsive: false,
+                plugins: {
+                    legend: {display: true, labels: {font: {size: 13}}},
+                    title: { display: true, text: 'Emotion by Segment', font: {size: 18}}
+                },
+                scales: {
+                    x: { type: 'linear', title: {display: true, text:'Segment'}, min:1, max:emotion_labels.length },
+                    y: {
+                        type: 'linear',
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) { return yLabels[value]||''; },
+                            min: 0, max: 3, font: {size: 14}
+                        },
+                        grid: { color: "#eef5f2" }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

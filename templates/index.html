@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+<head>
+    <title>EEG Emotion Classification Demo</title>
+    <style>
+        body {
+            background: linear-gradient(120deg,#A1FFCE 0%,#FAFFD1 100%);
+            font-family: 'Segoe UI','Arial',sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin: 48px auto 0 auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(40,180,160,0.08);
+            padding: 32px 32px 24px 32px;
+            text-align: center;
+            border: 1.5px solid #a0e7e5;
+        }
+        .logos {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 14px;
+            align-items: center;
+        }
+        .logos img {
+            height: 70px;
+            background: #fff;
+            border-radius: 50%;
+            padding: 4px 7px;
+            border: 2px solid #72e0c2;
+            box-shadow: 0 2px 8px #b9f2ea30;
+        }
+        .school-info {
+            font-size: 1.15em;
+            margin: 0 0 8px 0;
+            font-weight: bold;
+            color: #006d63;
+            line-height: 1.2;
+        }
+        .school-info a {
+            color: #007c71;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        h1 {
+            color: #1d7772;
+            margin-bottom: 6px;
+            font-size: 2.2em;
+            font-weight: 900;
+            letter-spacing: 1.2px;
+        }
+        .footer {
+            margin-top: 32px;
+            color: #06776e;
+            font-size: 0.98em;
+            opacity: 0.8;
+            letter-spacing: 0.5px;
+        }
+        @media (max-width: 650px) {
+            .container { padding: 8px 2px; }
+            .logos img { height: 44px; }
+        }
+        /* Spinner overlay */
+        #spinner-overlay {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(170,255,210,0.33);
+            justify-content: center;
+            align-items: center;
+        }
+        #spinner-inner {
+            background: #fff;
+            padding: 38px 54px 28px 54px;
+            border-radius: 16px;
+            box-shadow: 0 6px 36px #a0f3d055;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .spinner {
+            border: 7px solid #a1ffce;
+            border-top: 7px solid #20b39e;
+            border-radius: 50%;
+            width: 54px; height: 54px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 18px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg);}
+            100% { transform: rotate(360deg);}
+        }
+        .spinner-text {
+            font-size: 1.23em;
+            color: #009e90;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        /* --- Form chỉnh đẹp --- */
+        .myform {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0px;
+        }
+        .form-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 22px;
+            width: 100%;
+            max-width: 460px;
+        }
+        .form-row label {
+            min-width: 130px;
+            text-align: right;
+            color: #108484;
+            font-weight: 600;
+            margin-right: 18px;
+            font-size: 1.13em;
+            height: 42px;
+            line-height: 42px;
+            vertical-align: middle;
+        }
+        .form-row input[type="text"],
+        .form-row select {
+            font-size: 1.08em;
+            padding: 8px 12px;
+            border: 1.3px solid #99d7c5;
+            border-radius: 10px;
+            background: #f3fffc;
+            outline: none;
+            margin: 0;
+            width: 270px;
+            height: 42px;
+            box-sizing: border-box;
+            vertical-align: middle;
+            display: block;
+        }
+        .form-row select {
+            appearance: none;
+        }
+        .form-row input[type="file"] {
+            padding: 3px 6px;
+            width: auto;
+            background: none;
+            border: none;
+            margin-left: 0;
+            height: 42px;
+            box-sizing: border-box;
+            display: block;
+        }
+        input[type=submit] {
+            background: linear-gradient(90deg,#34e6b0 40%,#85ffd4 100%);
+            color: #06594c;
+            border: none;
+            border-radius: 10px;
+            padding: 9px 32px;
+            font-size: 1.14em;
+            font-weight: 700;
+            margin-top: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+            box-shadow: 0 2px 10px #a0f3d040;
+        }
+        input[type=submit]:hover {
+            background: linear-gradient(90deg,#10ceb5 50%,#90ffd2 100%);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logos">
+            <a href="https://hcmiu.edu.vn/en/schools-and-departments/" target="_blank">
+                <img src="{{ url_for('static', filename='IU_Logo.png') }}">
+            </a>
+            <a href="https://hcmiu.edu.vn/en/schools-and-departments/department-of-biomedical-engineering/" target="_blank">
+                <img src="{{ url_for('static', filename='BME_Logo.png') }}">
+            </a>
+        </div>
+        <div class="school-info">
+            <a href="https://hcmiu.edu.vn/en/schools-and-departments/" target="_blank">International University - VNUHCM</a><br>
+            <a href="https://hcmiu.edu.vn/en/schools-and-departments/department-of-biomedical-engineering/" target="_blank">Biomedical Engineering Department</a>
+        </div>
+        <h1>EEG Emotion Classification Demo</h1>
+        <form method="post" enctype="multipart/form-data" id="eegForm" class="myform">
+            <div class="form-row">
+                <label for="subject_id">Subject ID:</label>
+                <input type="text" id="subject_id" name="subject_id" required>
+            </div>
+            <div class="form-row">
+                <label for="gender">Gender:</label>
+                <select id="gender" name="gender" style="height: 42px;">
+                    <option>Male</option><option>Female</option><option>Other</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="eeg_file">Upload EEG <b>.dat</b> file:</label>
+                <input type="file" id="eeg_file" name="eeg_file" required>
+            </div>
+            <input type="submit" value="Predict">
+        </form>
+        <div class="footer">
+            &copy; Thesis 2025 - BME IU, Vietnam National University Ho Chi Minh City
+        </div>
+        <!-- Spinner overlay -->
+        <div id="spinner-overlay">
+          <div id="spinner-inner">
+            <div class="spinner"></div>
+            <div class="spinner-text">Processing, please wait...</div>
+          </div>
+        </div>
+    </div>
+    <script>
+    document.getElementById("eegForm").onsubmit = function() {
+        document.getElementById("spinner-overlay").style.display = "flex";
+    };
+    </script>
+</body>
+</html>
